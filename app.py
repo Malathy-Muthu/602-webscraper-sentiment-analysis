@@ -5,6 +5,7 @@ from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 from helpers import *
 
+import sklearn
 
 ########### Define a few variables ######
 
