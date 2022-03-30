@@ -10,27 +10,68 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 ########### Set up the default figures ######
 
 def base_fig():
-    data=go.Table(columnwidth = [200,200,1000],
-                    header=dict(values=['date', 'time', 'post', 'sentiment'], align=['left']),
-                    cells=dict(align=['left'],
-                               values=[[1,2,3],
-                                       [1,2,3],
-                                       ['waiting for data','waiting for data','waiting for data'],
-                                       ['Neutral','Neutral','Neutral']
-                                       ])
+    data=go.Table(columnwidth = [200,200,1000,160],
+                    header=dict(values=[['<b>Ratings</b><br>(100 ratings)'],
+                                        ['<b>Days Ago</b>'],
+                                        ['<b>Review Comments</b>'],
+                                        ['<b>Sentiment<br>Analysis</b>']
+                                        ], 
+                           line_color='darkslategray',
+                           fill_color='royalblue',
+                           align=['left','center'],
+                           font=dict(color='white', size=12),
+                           height=40),
+                    cells=dict(values=[[1,2,3,4],
+                                       [1,2,3,4],
+                                       ['Waiting for data','Waiting for data','Waiting for data','Waiting for data'],
+                                       ['Neutral','Neutral','Neutral','Neutral']
+                                       ],
+                               line_color='darkslategray',
+                               fill=dict(color=['paleturquoise', 'white','paleturquoise','white']),
+                               align=['left', 'center'],
+                               font_size=12,
+                               height=30)
+              
                  )
     fig = go.Figure([data])
+
+    fig.update_layout(
+    autosize=False,
+    width=1000,
+    height=1000,
+    margin=dict(
+        l=50,
+        r=50,
+        b=50,
+        t=50,
+        pad=4
+    ),
+    paper_bgcolor="black",
+)
     return fig
 
 def error_fig():
-    data=go.Table(columnwidth = [200,200,1000],
-                    header=dict(values=['date', 'time', 'post', 'sentiment'], align=['left']),
-                    cells=dict(align=['left'],
-                               values=[['whoa!','whoa!','whoa!'],
-                                       [3,2,1],
-                                       ['Slow down!','Scraping takes a sec','Try back later!'],
-                                       ['Neutral','Neutral','Neutral']
-                                       ])
+    data=go.Table(columnwidth = [200,200,1000,160],
+                    header=dict(values=[['<b>Ratings</b><br>(100 ratings)'],
+                                        ['<b>Days Ago</b>'],
+                                        ['<b>Review Comments</b>'],
+                                        ['<b>Sentiment<br>Analysis</b>']
+                                        ], 
+                           line_color='darkslategray',
+                           fill_color='royalblue',
+                           align=['left','center'],
+                           font=dict(color='white', size=12),
+                           height=40),
+                    cells=dict(values=[['whoa!','whoa!','whoa!','whoa!'],
+                                       [4,3,2,1],
+                                       ['Slow down!','Scraping takes a sec','Try back later!','Take a break'],
+                                       ['Neutral','Neutral','Neutral','Neutral']
+                                       ],
+                               line_color='darkslategray',
+                               fill=dict(color=['paleturquoise', 'white','paleturquoise','white']),
+                               align=['left', 'center'],
+                               font_size=12,
+                               height=30)
                  )
     fig = go.Figure([data])
     return fig
@@ -56,55 +97,45 @@ def sentiment_scores(sentence):
 # define a scraper function
 def lovely_soup(url):
     r = requests.get(url, headers = {'User-agent': 'Agent_Smith'})
-    return BeautifulSoup(r.text, 'lxml')
-# write a function to clean up the post
-def clean_that_post(row):
-    x = row.split(' (self.AskReddit)')
-    return x[0]
-# write a function to clean up the date
-def parse_that_date(row):
-    x = row.split(' ')[1:]
-    y = ' '.join(x)
-    z = '2020 '+ y
-    return z[:20]
+    return BeautifulSoup(r.text, 'html')
 
 ########### Scraping ######
 
-def scrape_reddit():
+def scrape_restaurant():
     # apply the function to our reddit source
-    url = 'https://old.reddit.com/r/AskReddit/'
+    url = 'https://restaurantguru.com/Agas-Restaurant-Houston/reviews?bylang=1'
     soup = lovely_soup(url)
-    # create a list of titles
-    titles = soup.findAll('p', {'class': 'title'})
-    titleslist=[]
-    for title in titles:
-        titleslist.append(title.text)
-    # create a list of dates
-    dates = soup.findAll('time', {'class':"live-timestamp"})
-    dateslist=[]
-    for date in dates:
-        output = str(date).split('title="')[1].split('2020')[0]
-        dateslist.append(output)
-
+    # create a list of Reviews
+    reviews = soup.findAll('span', {'class': 'text_full'})
+    reviewlist=[]
+    for review in reviews:
+        output = str(review).split('<span class="text_full">')[1]
+        reviewlist.append(output)
+    # create a list of Ratings
+    ratings = soup.findAll('div', {'class':'o_review'})
+    ratinglist=[]
+    for rating in ratings:
+        output = str(rating).split('data-score="')[1][0]
+        ratinglist.append(output)
+    # create a list of days ago
+    daysagos = soup.findAll('span', {'class':'grey'})
+    daysagolist=[]
+    for daysago in daysagos:
+        output = str(daysago).split('<span class="grey">')[1]
+        daysagolist.append(output)
+    daysagolist=daysagolist[7:]
     ########### Pandas work ######
-    # convert the two lists into a pandas dataframe
-    df_dict={'date':dateslist, 'post':titleslist}
+    # convert the three lists into a pandas dataframe
+
+    df_dict={'rating':ratinglist, 'days_ago':daysagolist,'review':reviewlist}
     working_df = pd.DataFrame(df_dict)
     pd.set_option('display.max_colwidth', 200)
-    working_df['date'] = working_df['date'].str.strip()
+    working_df['review'] = working_df['review'].str.strip()
 
-    # apply the function
-    working_df['post']=working_df['post'].apply(clean_that_post)
+    # apply the regex function
+    working_df=working_df.replace(regex=['</span>'], value=' ')
 
-    # apply the date parsing function and sort the dataframe
-    working_df['cleandate']=working_df['date'].apply(parse_that_date)
-    working_df['UTC_date'] = pd.to_datetime(working_df['cleandate'])
-    working_df.sort_values('UTC_date', inplace=True, ascending=False)
-    # split into 2 date/time variables
-    working_df['date']=working_df['UTC_date'].dt.date
-    working_df['time']=working_df['UTC_date'].dt.time
-    # add sentiment analysis
-    working_df['sentiment'] = working_df['post'].apply(sentiment_scores)
+    working_df['sentiment'] = working_df['review'].apply(sentiment_scores)
 
     # send final df
     final_df = working_df[['date', 'time', 'post', 'sentiment']].copy()
@@ -113,14 +144,42 @@ def scrape_reddit():
 
     ########### Set up the figure ######
 
-    data=go.Table(columnwidth = [200,200,1000],
-                    header=dict(values=final_df.columns, align=['left']),
-                    cells=dict(align=['left'],
-                               values=[final_df['date'],
-                                       final_df['time'],
-                                       final_df['post'].values,
+    data=go.Table(columnwidth = [200,200,1000,160],
+                    header=dict(values=[['<b>Ratings</b><br>(100 ratings)'],
+                                        ['<b>Days Ago</b>'],
+                                        ['<b>Review Comments</b>'],
+                                        ['<b>Sentiment<br>Analysis</b>']
+                                        ], 
+                           line_color='darkslategray',
+                           fill_color='royalblue',
+                           align=['left','center'],
+                           font=dict(color='white', size=12),
+                           height=40),
+                    cells=dict(values=[final_df['rating'],
+                                       final_df['days_ago'],
+                                       final_df['review'],
                                        final_df['sentiment'].values
-                                       ])
+                                       ],
+                              line_color='darkslategray',
+                              fill=dict(color=['paleturquoise', 'white','paleturquoise','white']),
+                              align=['left', 'center'],
+                              font_size=12,
+                              height=30)
+              
                  )
     fig = go.Figure([data])
+
+    fig.update_layout(
+    autosize=False,
+    width=1000,
+    height=1000,
+    margin=dict(
+        l=50,
+        r=50,
+        b=50,
+        t=50,
+        pad=4
+    ),
+    paper_bgcolor="black",
+    )
     return fig

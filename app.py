@@ -8,9 +8,9 @@ from helpers import *
 
 ########### Define a few variables ######
 
-tabtitle = 'Reddit Webscraper'
-sourceurl = 'https://old.reddit.com/r/AskReddit/'
-githublink = 'https://github.com/plotly-dash-apps/602-webscraper-sentiment-analysis'
+tabtitle = 'Agas - Houston Best Restaurant - Webscraper'
+sourceurl = 'https://restaurantguru.com/Agas-Restaurant-Houston/reviews?bylang=1'
+githublink = 'https://github.com/Malathy-Muthu/602-webscraper-sentiment-analysis'
 
 ########### Initiate the app
 # external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -22,7 +22,7 @@ app.title=tabtitle
 ########### Layout ###########
 
 app.layout = html.Div(children=[
-    html.H1('Webscraping posts from reddit'),
+    html.H1('Webscraping posts from Agas - Houston Best Restaurant'),
     # Dropdowns
     html.Div(children=[
         html.Button('Scrape Now!', id='submit-val', n_clicks=0),
@@ -52,7 +52,7 @@ def update_output(n_clicks):
         return message, base_fig()
     elif n_clicks==1:
         message = f"You've clicked that button {n_clicks} time!"
-        return message, scrape_reddit()
+        return message, scrape_restaurant()
     elif (n_clicks>1) & (n_clicks<5):
         message = f"You've clicked that button {n_clicks} times!"
         return message, error_fig()
