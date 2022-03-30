@@ -123,14 +123,12 @@ def scrape_restaurant():
     for daysago in daysagos:
         output = str(daysago).split('<span class="grey">')[1]
         daysagolist.append(output)
-    daysagolist=daysagolist[7:]
+    daysagolist=daysagolist[8:]
     ########### Pandas work ######
     # convert the three lists into a pandas dataframe
 
     df_dict={'rating':ratinglist, 'days_ago':daysagolist,'review':reviewlist}
     working_df = pd.DataFrame(df_dict)
-    pd.set_option('display.max_colwidth', 200)
-    working_df['review'] = working_df['review'].str.strip()
 
     # apply the regex function
     working_df=working_df.replace(regex=['</span>'], value=' ')
@@ -138,7 +136,7 @@ def scrape_restaurant():
     working_df['sentiment'] = working_df['review'].apply(sentiment_scores)
 
     # send final df
-    final_df = working_df[['date', 'time', 'post', 'sentiment']].copy()
+    working_df[['rating', 'days_ago', 'review', 'sentiment']].copy()
 
 
 
