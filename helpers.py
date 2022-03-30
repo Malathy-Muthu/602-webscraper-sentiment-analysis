@@ -96,7 +96,7 @@ def sentiment_scores(sentence):
 
 # define a scraper function
 def lovely_soup(url):
-    r = requests.get(url, headers = {'User-agent': 'Agent_Smith'})
+    r = requests.get(url, headers = {'User-agent': 'Mozilla/5.0'})
     return BeautifulSoup(r.text, 'html')
 
 ########### Scraping ######
