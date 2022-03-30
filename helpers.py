@@ -129,8 +129,6 @@ def scrape_restaurant():
 
     df_dict={'rating':ratinglist, 'days_ago':daysagolist,'review':reviewlist}
     working_df = pd.DataFrame(df_dict)
-    pd.set_option('display.max_colwidth', 200)
-    working_df['review'] = working_df['review'].str.strip()
 
     # apply the regex function
     working_df=working_df.replace(regex=['</span>'], value=' ')
